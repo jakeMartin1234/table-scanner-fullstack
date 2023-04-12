@@ -8,6 +8,7 @@ import NumericInput from 'react-numeric-input';
 import Photo from './Photo.js';
 import axios from 'axios';
 import { WidgetLoader, Widget } from 'react-cloudinary-upload-widget';
+import FileUploader from "./fileUploader";
 
 const backendUrl = 'http://localhost:8000';
 
@@ -207,17 +208,24 @@ class App extends React.Component {
   handleColChange(event) {
     if (event < 0) {
       this.setState({numCols: 0});
-    } else {
-      this.setState({numCols: event})
     }
+      this.setState({numCols: event})
+    let ret = [];
+    for (let i = 1; i < this.state.numCols; i++) {
+      ret.push(i/this.state.numCols);
+    }
+    this.setState({tCols: ret, numCols: event})
   }
 
   handleRowChange(event) {
     if (event < 0) {
         this.setState({numRows: 0});
-    } else {
-      this.setState({numRows: event})
     }
+    let ret = [];
+    for (let i = 1; i < this.state.numRows; i++) {
+      ret.push(i/this.state.numRows);
+    }
+    this.setState({tRows: ret, numRows: event});
   }
 
   handleDimChange() {
@@ -229,12 +237,12 @@ class App extends React.Component {
   }
 
   handletNumChange(event) {
-    var ret;
-    var diff;
     if (this.state.useCustomDims) {
+      let ret;
+      let diff;
       if (this.state.useColumns) {
-        ret = this.tCols;
-        diff = (event / this.state.tDenominator) - this.tCols[this.state.startSelector - 1];
+        ret = this.state.tCols;
+        diff = (event / this.state.tDenominator) - this.state.tCols[this.state.startSelector - 1];
 
         for (let i = this.state.startSelector; i <= this.state.endSelector; i++) {
 
@@ -244,8 +252,8 @@ class App extends React.Component {
           this.ensureSelectorsValid();
         });
       } else {
-        ret = this.tRows;
-        diff = (event / this.state.tDenominator) - this.tRows[this.state.startSelector - 1];
+        ret = this.state.tRows;
+        diff = (event / this.state.tDenominator) - this.state.tRows[this.state.startSelector - 1];
         for (let i = this.state.startSelector; i <= this.state.endSelector; i++) {
 
           ret[i - 1] += diff;
@@ -319,25 +327,32 @@ class App extends React.Component {
 
   handleFileChange(event) {
     console.log("lets gooo func up");
-    this.setState({selectedFile: event.info.url});
+    this.setState({selectedFile: event});
   }
 
   async handleDatasetSubmit() {
     // Create an object of formData
 
-    let packet = {
-      numCols: this.state.numCols,
-      numRows: this.state.numRows,
-      tRows: this.state.tRows,
-      tCols: this.state.tCols,
-      selectedFile: this.state.selectedFile,
-      vertices: this.state.vertices,
-      username: "biggin123"
+    let verticesList = [];
+    for (let i = 0; i < this.state.vertices.length; i++) {
+      verticesList.push(JSON.stringify(this.state.vertices[i]))
     };
+    let formData = new FormData();
+    formData.append("selectedFile", this.state.selectedFile, this.state.selectedFile.name);
+    formData.append("numCols", this.state.numCols);
+    formData.append("numRows", this.state.numRows);
+    formData.append("tRows", this.state.tRows);
+    formData.append("tCols", this.state.tCols);
+    formData.append("vertices", verticesList);
+    formData.append("username", this.state.username);
 
-    console.log(backendUrl);
+    console.log(formData);
+    const response = await axios.post(backendUrl, formData, {
+      headers: {
+        'content-type': 'multipart/form-data'
+      }
+    })
 
-    const response = await axios.post(`${backendUrl}/`, packet);
     console.log(response);
 
     downloadCsv(response.data.result)
@@ -380,6 +395,7 @@ class App extends React.Component {
       this.tRows = this.state.tRows;
       this.tCols = this.state.tCols;
     }
+    console.log(this.state.selectedFile)
     
     this.photo = <Photo numCols={this.state.numCols} numRows={this.state.numRows}
                     tCols={this.tCols} tRows={this.tRows}
@@ -474,16 +490,8 @@ class App extends React.Component {
         </div>
         <div key="fileChoiceButton">
           <label>
-            <WidgetLoader />
-            <Widget 
-              sources={['local']}
-              resourceType={'image'}
-              cloudName={'tablescanner420'}
-              uploadPreset={'iC1hAFzm3fTsMp1xMbg2WFv29Dfw8z8MPUakLC07'}
-              onSuccess={this.handleFileChange}
-            />
-            {/*<FileUploader handleChange={this.handleFileChange} name="file"/>*/}
-            {/*<input type="file" onChange={this.handleFileChange} />*/}
+            <FileUploader component={this} />
+
           </label>
         </div>
         <div key="fileSubmitButton">

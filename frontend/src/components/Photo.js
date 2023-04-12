@@ -199,7 +199,7 @@ class Photo extends React.Component {
     if (this.selectedPhoto == null) {
       image = <img alt="" onClick={() => this.handleClick()} src={require("./ExampleGraph.png")}/>;
     } else {
-      image = <img alt="" src = {this.selectedPhoto} onClick={() => this.handleClick()}/>;
+      image = <img alt="" src = {URL.createObjectURL(this.selectedPhoto)} onClick={() => this.handleClick()}/>;
     }
 
     if (this.rect) {
