@@ -3,18 +3,21 @@ const {loadImage, createCanvas} = require("canvas");
 const fs = require("fs");
 
 async function editImage(req) {
-    let response = await axios({
-        method: 'get',
-        url: req.body.selectedFile,
-        responseType: 'arraybuffer'
-    })
 
-    var image = await loadImage(response.data);
+    // let response = await axios({
+    //     method: 'get',
+    //     url: URL.createObjectURL(req.file),
+    //     responseType: 'arraybuffer'
+    // })
+    console.log(req.file);
+    let image = await loadImage(req.file.buffer);
 
     const canvas = createCanvas(image.width, image.height);
     const ctx = canvas.getContext('2d');
+
     ctx.drawImage(image, 0, 0);
 
+    console.log(req.body.vertices)
     const linesToDraw = getLines(req.body.vertices, req.body.tCols, req.body.tRows)
 
     for (let i = 0; i < linesToDraw.length; i++) {
