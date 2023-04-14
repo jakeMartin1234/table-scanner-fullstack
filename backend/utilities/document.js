@@ -1,7 +1,4 @@
 require('dotenv').config();
-const projectId = process.env.GOOGLE_PROJECT_ID;
-const location = process.env.GOOGLE_LOCATION; // Format is 'us' or 'eu'
-const processorId = process.env.GOOGLE_PROCESSOR_ID; // Create processor in Cloud Console
 
 const {DocumentProcessorServiceClient} =
     require('@google-cloud/documentai').v1;
@@ -15,7 +12,7 @@ async function documentaiScan(editedImage) {
     // The full resource name of the processor, e.g.:
     // projects/project-id/locations/location/processor/processor-id
     // You must create new processors in the Cloud Console first
-    const name = `projects/${projectId}/locations/${location}/processors/${processorId}`;
+    const name = process.env.GOOGLE_PROCESSOR_LOCATION;
 
     // Read the file into memory.
     // const fs = require('fs').promises;
